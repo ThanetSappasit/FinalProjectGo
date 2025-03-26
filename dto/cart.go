@@ -13,6 +13,7 @@ type CartResponse struct {
 	CartName   string             `json:"cart_name"`
 	CartItems  []CartItemResponse `json:"cart_items"`
 	TotalItems int                `json:"total_items"`
+	TotalPrice string             `json:"total_price"`
 }
 
 type CartItemResponse struct {
@@ -21,4 +22,12 @@ type CartItemResponse struct {
 	Quantity    int    `json:"quantity"`
 	ProductName string `json:"product_name"`
 	Price       string `json:"price"`
+}
+
+type CustomerCartsRequest struct {
+	CustomerID int `json:"customer_id" binding:"required"`
+}
+
+type CustomerCartsResponse struct {
+	Carts []CartResponse `json:"carts"`
 }

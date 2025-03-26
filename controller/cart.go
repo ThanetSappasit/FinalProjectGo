@@ -3,7 +3,9 @@ package controller
 import (
 	"final_go/dto"
 	"final_go/model"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -16,9 +18,9 @@ func CartController(router *gin.Engine, db *gorm.DB) {
 		routes.POST("/add", func(c *gin.Context) {
 			AddItemToCart(c, db)
 		})
-		// routes.PUT("/update", func(c *gin.Context) {
-		// 	UpdateUser(c, db)
-		// })
+		routes.GET("/mycart", func(c *gin.Context) {
+			GetCustomerCarts(c, db)
+		})
 		// routes.PUT("/changepwd", func(c *gin.Context) {
 		// 	UpdatePassword(c, db)
 		// })
@@ -128,4 +130,66 @@ func AddItemToCart(c *gin.Context, db *gorm.DB) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+func GetCustomerCarts(c *gin.Context, db *gorm.DB) {
+	// Parse the request body
+	var req dto.CustomerCartsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Find all carts for the customer
+	var carts []model.Cart
+	if err := db.Where("customer_id = ?", req.CustomerID).Find(&carts).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve carts"})
+		return
+	}
+
+	// Prepare response
+	var customerCartsResponse dto.CustomerCartsResponse
+
+	// Iterate through each cart and fetch its items
+	for _, cart := range carts {
+		var cartItemsResponse []dto.CartItemResponse
+		var totalItems int
+		var totalPrice float64
+
+		// Fetch cart items with detailed product information
+		err := db.Table("cart_item").
+			Select("cart_item.cart_item_id, cart_item.product_id, cart_item.quantity, product.product_name, product.price").
+			Joins("JOIN product ON cart_item.product_id = product.product_id").
+			Where("cart_item.cart_id = ?", cart.CartID).
+			Scan(&cartItemsResponse).Error
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve cart items"})
+			return
+		}
+
+		// Calculate total items and total price
+		for _, item := range cartItemsResponse {
+			totalItems += item.Quantity
+
+			// Convert price to float for calculation
+			itemPrice, _ := strconv.ParseFloat(item.Price, 64)
+			totalPrice += itemPrice * float64(item.Quantity)
+		}
+
+		// Create cart response
+		cartResponse := dto.CartResponse{
+			CartID:     cart.CartID,
+			CustomerID: cart.CustomerID,
+			CartName:   cart.CartName,
+			CartItems:  cartItemsResponse,
+			TotalItems: totalItems,
+			TotalPrice: fmt.Sprintf("%.2f", totalPrice),
+		}
+
+		customerCartsResponse.Carts = append(customerCartsResponse.Carts, cartResponse)
+	}
+
+	// Return the response
+	c.JSON(http.StatusOK, customerCartsResponse)
 }
