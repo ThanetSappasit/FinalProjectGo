@@ -49,6 +49,8 @@ func StartServer() {
 	// LandmarkController(router, db) // Pass the actual database connection
 	LoginController(router, db)
 	UserController(router, db)
+	ProductController(router, db)
+	CartController(router, db)
 
 	// Start the server
 	router.Run()
