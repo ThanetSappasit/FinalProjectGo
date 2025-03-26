@@ -18,7 +18,7 @@ func CartController(router *gin.Engine, db *gorm.DB) {
 		routes.POST("/add", func(c *gin.Context) {
 			AddItemToCart(c, db)
 		})
-		routes.GET("/mycart", func(c *gin.Context) {
+		routes.POST("/mycart", func(c *gin.Context) {
 			GetCustomerCarts(c, db)
 		})
 		// routes.PUT("/changepwd", func(c *gin.Context) {
