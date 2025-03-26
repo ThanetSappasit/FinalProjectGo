@@ -1,2 +1,2 @@
 mysql:
-  dsn: "landmark:landmark@csmsu@tcp(202.28.34.197:3306)/landmark?collation=utf8mb4_unicode_ci&parseTime=true"
+  dsn: "cp_65011212172:65011212172@csmsu@tcp(202.28.34.197:3306)/cp_65011212172?collation=utf8mb4_unicode_ci&parseTime=true"

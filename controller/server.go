@@ -45,8 +45,10 @@ func StartServer() {
 		c.JSON(200, gin.H{"message": "API is now working"})
 	})
 
-	CountryController(router, db)  // Pass the actual database connection
-	LandmarkController(router, db) // Pass the actual database connection
+	// CountryController(router, db)  // Pass the actual database connection
+	// LandmarkController(router, db) // Pass the actual database connection
+	LoginController(router, db)
+	UserController(router, db)
 
 	// Start the server
 	router.Run()
